@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScrapePilot AI — Website Scraping &amp; Data Extraction</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">🛰️ ScrapePilot <span>AI</span></div>
+    <nav id="nav">
+      <button data-section="overview" class="active">📊 Overview</button>
+      <button data-section="scraper">🌐 Website Scraper</button>
+      <button data-section="pages">📄 All Discovered Pages</button>
+      <button data-section="services">🛠️ Services Pages</button>
+      <button data-section="products">📦 Products</button>
+      <button data-section="contact">📞 Contact Information</button>
+      <button data-section="purpose">🎯 Purpose / About Pages</button>
+      <button data-section="company">🏢 Company Information</button>
+      <button data-section="blogs">📰 Blog &amp; Articles</button>
+      <button data-section="seo">🔍 SEO Analysis</button>
+      <button data-section="ai">🤖 AI Assistant</button>
+      <button data-section="history">🕘 Scraping History</button>
+      <button data-section="export">⬇️ Export Data</button>
+      <button data-section="settings">⚙️ Settings</button>
+    </nav>
+    <div class="side-foot">
+      <div id="keyStatus" class="key-status">Checking AI key…</div>
+      <button id="themeBtn" class="ghost-btn">🌙 Dark / Light</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button id="menuBtn" class="ghost-btn">☰</button>
+      <h1 id="pageTitle">Overview</h1>
+      <div id="sessionBadge" class="session-badge">No session yet — run a scrape</div>
+    </header>
+
+    <div id="notice" class="notice hidden"></div>
+
+    <!-- OVERVIEW -->
+    <section id="sec-overview" class="section active">
+      <p class="lead">Enter one website URL and ScrapePilot AI discovers its pages,
+      extracts services, contact details and purpose/about information, and
+      audits its SEO — all from real scraped data. Nothing is invented:
+      empty sections say <strong>Not Found</strong>.</p>
+      <div class="stats" id="statsGrid"></div>
+      <div class="card">
+        <h2>Quick start</h2>
+        <ol class="steps">
+          <li>Go to <strong>Website Scraper</strong>, paste a URL, tick
+              <strong>Scrape All Available Data</strong> and click Start Scraping.</li>
+          <li>Watch the progress bar — pages are discovered from the sitemap
+              and internal links, within your page/depth limits.</li>
+          <li>Open Services, Contact and Purpose / About — they are always
+              shown, even with zero results.</li>
+          <li>Export the full report as CSV, JSON or TXT from Export Data.</li>
+        </ol>
+        <p class="muted">AI answers need a free OpenRouter key in <code>.env</code>.
+        Scraping works without one.</p>
+      </div>
+      <div class="card">
+        <h2>Latest session</h2>
+        <div id="latestSession" class="muted">No session yet.</div>
+      </div>
+    </section>
+
+    <!-- SCRAPER -->
+    <section id="sec-scraper" class="section">
+      <div class="card">
+        <h2>Website Scraper</h2>
+        <label for="urlInput">Website URL</label>
+        <div class="row">
+          <input id="urlInput" type="url" placeholder="https://example.com" autocomplete="off">
+          <button id="scrapeBtn" class="primary">▶ Start Scraping</button>
+        </div>
+        <label class="check"><input type="checkbox" id="scrapeAll" checked>
+          <strong>Scrape All Available Data</strong> — all categories, links, images,
+          metadata and structured data, within the limits below.</label>
+        <div class="grid4">
+          <div><label>Max pages</label><input id="maxPages" type="number" value="25" min="1" max="200"></div>
+          <div><label>Crawl depth</label><input id="maxDepth" type="number" value="2" min="0" max="4"></div>
+          <div><label>Timeout (s)</label><input id="timeout" type="number" value="15" min="5" max="60"></div>
+          <div><label>Delay between requests (s)</label><input id="delay" type="number" value="0.5" min="0" max="10" step="0.1"></div>
+        </div>
+        <div class="grid2">
+          <div><label>URL include patterns (optional, comma separated)</label>
+            <input id="includePat" type="text" placeholder="services, about"></div>
+          <div><label>URL exclude patterns (optional, comma separated)</label>
+            <input id="excludePat" type="text" placeholder="wp-admin, cart"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="jsRendering">
+          JavaScript rendering (Playwright — not installed in this build, so pages
+          fall back to plain HTML fetching)</label>
+        <p class="muted">ScrapePilot AI respects robots.txt, never touches localhost or
+        private addresses, and never tries to bypass logins, paywalls or CAPTCHAs.
+        Only public pages are collected.</p>
+        <div id="progressBox" class="hidden">
+          <div class="progress"><div id="progressBar"></div></div>
+          <p id="progressText" class="muted"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGES -->
+    <section id="sec-pages" class="section">
+      <div class="card">
+        <h2>All Discovered Pages <span id="pagesCount" class="pill"></span></h2>
+        <div class="row">
+          <input id="pageSearch" type="search" placeholder="Search title or URL…">
+          <select id="pageFilter"><option value="">All categories</option></select>
+          <button id="pageRefresh" class="ghost-btn">↻ Refresh</button>
+        </div>
+        <div class="table-wrap"><table id="pagesTable">
+          <thead><tr><th>Title</th><th>URL</th><th>Category</th><th>HTTP</th><th>Status</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p id="pagesEmpty" class="muted hidden">No pages yet — run a scrape first.</p>
+        <div class="pager"><button id="pagesPrev">← Prev</button>
+          <span id="pagesPageInfo"></span><button id="pagesNext">Next →</button></div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="sec-services" class="section">
+      <div class="card"><h2>Services Pages <span id="servicesCount" class="pill"></span></h2>
+        <div id="servicesList"></div>
+        <p id="servicesEmpty" class="empty hidden">No matching page discovered.</p>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="sec-products" class="section">
+      <div class="card"><h2>Products <span id="productsCount" class="pill"></span></h2>
+        <div id="productsList"></div>
+        <p id="productsEmpty" class="empty hidden">No matching page discovered.</p>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="sec-contact" class="section">
+      <div class="card"><h2>Contact Information</h2>
+        <div id="contactBox"></div>
+        <p id="contactEmpty" class="empty hidden">No matching page discovered.</p>
+      </div>
+    </section>
+
+    <!-- PURPOSE -->
+    <section id="sec-purpose" class="section">
+      <div class="card"><h2>Purpose / About Pages <span id="purposeCount" class="pill"></span></h2>
+        <div id="purposeList"></div>
+        <p id="purposeEmpty" class="empty hidden">No matching page discovered.</p>
+      </div>
+    </section>
+
+    <!-- COMPANY -->
+    <section id="sec-company" class="section">
+      <div class="card"><h2>Company Information</h2><div id="companyBox"></div></div>
+    </section>
+
+    <!-- BLOGS -->
+    <section id="sec-blogs" class="section">
+      <div class="card"><h2>Blog &amp; Articles <span id="blogsCount" class="pill"></span></h2>
+        <div id="blogsList"></div>
+        <p id="blogsEmpty" class="empty hidden">No matching page discovered.</p>
+      </div>
+    </section>
+
+    <!-- SEO -->
+    <section id="sec-seo" class="section">
+      <div class="card"><h2>SEO Analysis</h2>
+        <div id="seoCounts" class="stats"></div>
+        <div id="seoList"></div>
+        <p id="seoEmpty" class="empty hidden">No SEO findings yet — run a scrape first.</p>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section id="sec-ai" class="section">
+      <div class="card"><h2>AI Assistant</h2>
+        <p class="muted">Ask about the current scraping session — services, contact,
+        purpose, SEO findings. The AI only uses extracted data and says when
+        something was not found. Try: “What services does this company provide?”
+        or “Which pages have missing SEO titles?” You can also ask about Bilal's portfolio.</p>
+        <div id="chatLog" class="chat-log"></div>
+        <div class="row">
+          <input id="chatInput" type="text" placeholder="Ask about the scraped website…">
+          <button id="chatSend" class="primary">Ask</button>
+        </div>
+        <div class="chips">
+          <button data-q="What services does this company provide?">Services?</button>
+          <button data-q="Find all publicly listed contact information.">Contact?</button>
+          <button data-q="Find the company's purpose and mission.">Purpose?</button>
+          <button data-q="Which pages have missing SEO titles?">Missing titles?</button>
+          <button data-q="Summarize this company's business.">Summarize</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="sec-history" class="section">
+      <div class="card"><h2>Scraping History</h2>
+        <div class="table-wrap"><table id="historyTable">
+          <thead><tr><th>Website</th><th>Started</th><th>Status</th><th>Pages</th><th>OK / Failed</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p id="historyEmpty" class="muted hidden">No previous sessions yet.</p>
+      </div>
+    </section>
+
+    <!-- EXPORT -->
+    <section id="sec-export" class="section">
+      <div class="card"><h2>Export Data</h2>
+        <p class="muted">Exports contain real data from the selected session only.
+        The complete report always includes the required Services, Contact and
+        Purpose sections — with “Not Found” when they are empty.</p>
+        <div class="row">
+          <select id="exportKind">
+            <option value="all">Complete website report</option>
+            <option value="urls">All discovered URLs</option>
+            <option value="services">Services pages</option>
+            <option value="contact">Contact information</option>
+            <option value="purpose">Purpose / About pages</option>
+            <option value="products">Products</option>
+            <option value="company">Company information</option>
+            <option value="blogs">Blog articles</option>
+            <option value="seo">SEO audit findings</option>
+          </select>
+          <button data-fmt="csv" class="exportBtn primary">⬇ CSV</button>
+          <button data-fmt="json" class="exportBtn primary">⬇ JSON</button>
+          <button data-fmt="txt" class="exportBtn primary">⬇ TXT</button>
+        </div>
+        <p id="exportMsg" class="muted"></p>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="sec-settings" class="section">
+      <div class="card"><h2>Settings</h2>
+        <div id="settingsBox" class="muted">Loading…</div>
+        <h3>OpenRouter key</h3>
+        <p>Copy <code>.env.example</code> to <code>.env</code> and paste a free key
+        from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>.
+        The key lives only on the server — never in the browser. Restart the app after adding it.</p>
+        <h3>Render deployment</h3>
+        <p>See <code>README.md</code>: <code>pip install -r requirements.txt</code>,
+        start command <code>gunicorn app:app</code>, and set
+        <code>OPENROUTER_API_KEY</code> in the Render dashboard. History is stored in
+        SQLite on the local disk, so on Render's free tier it is lost on redeploy —
+        use a persistent disk or an external database to keep it.</p>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="/static/js/script.js"></script>
+</body>
+</html>
